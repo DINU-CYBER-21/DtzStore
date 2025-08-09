@@ -3,163 +3,556 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Dtz Store - Public View</title>
+<title>DtzStore  Mode By Dark Tech Zone </title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
-
+  :root {
+    --bg: #0f0f0f;
+    --fg: #fff;
+    --muted: #999;
+    --accent: #ff0033;
+  }
+  * {
+    margin: 0; padding: 0; box-sizing: border-box;
+    font-family: Arial, sans-serif;
+  }
   body {
-    background: #121212;
-    color: #eee;
-    font-family: 'Poppins', sans-serif;
-    margin: 0; 
-    padding: 2rem;
+    background: var(--bg);
+    color: var(--fg);
     min-height: 100vh;
-    position: relative;
+    padding: 20px;
+    user-select:none;
   }
-  h1 {
-    text-align: center;
-    color: #ff0033;
-    margin-bottom: 2rem;
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #1a1a1a; padding: 10px 15px; border-bottom: 1px solid #333;
+    margin-bottom: 20px;
   }
+  header strong { font-size: 22px; }
+  header .subtitle { font-size: 12px; color: var(--muted); }
 
-  /* Icon image top-left */
-  #top-left-icon {
-    position: fixed;
-    top: 15px;
-    left: 15px;
-    width: 50px;
-    height: 50px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px #ff0033aa;
-    cursor: default;
-    z-index: 1002;
+  /* Admin modal */
+  .modal {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
   }
-
-  /* Owner panel button top-right */
-  #ownerBtn {
-    position: fixed;
-    top: 15px;
-    right: 15px;
-    background: #ff0033;
-    border: none;
-    padding: 0.6rem 1rem;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.9rem;
-    box-shadow: 0 0 12px #ff0033aa;
-    z-index: 1002;
-    transition: background-color 0.3s ease;
-  }
-  #ownerBtn:hover {
-    background-color: #cc0029;
-  }
-
-  #content {
-    max-width: 700px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
+  .modal.show {
     opacity: 1;
-    transform: translateY(0);
-    transition: opacity 0.5s ease, transform 0.5s ease;
-    padding-top: 1rem;
+    pointer-events: auto;
   }
-  .item {
+  .modal .box {
     background: #222;
-    border-radius: 10px;
-    padding: 1rem 1.2rem;
-    box-shadow: 0 0 8px #ff0033aa;
-    word-break: break-word;
-  }
-  a {
-    color: #ff6688;
-    word-break: break-word;
-  }
-  img {
-    max-width: 100%;
+    padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 0 10px #ff4466;
+    width: 400px;
+    box-shadow: 0 0 15px var(--accent);
+    color: var(--fg);
+  }
+  .modal h2 {
+    margin-bottom: 15px;
+  }
+  input, textarea {
+    width: 100%; padding: 10px; margin-bottom: 15px;
+    border-radius: 5px; border: 1px solid #555;
+    background: #111; color: var(--fg);
+  }
+  label {
+    display: block;
+    margin-bottom: 8px;
+  }
+  button {
+    cursor: pointer;
+    background: var(--accent);
+    border: none;
+    color: var(--fg);
+    padding: 10px 16px;
+    border-radius: 5px;
+    font-weight: 600;
+    transition: background 0.3s ease;
+  }
+  button:hover { background: #ff3366; }
+  .btn-group {
+    display: flex; justify-content: flex-end; gap: 10px;
+  }
+  #itemsList {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(250px,1fr));
+    gap: 15px;
+  }
+  .item-card {
+    background: #1a1a1a;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 0 8px var(--accent);
+  }
+  .item-title {
+    font-weight: 700; font-size: 1.1rem; color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .item-details {
+    font-size: 0.85rem; color: var(--muted); margin-bottom: 8px;
+    white-space: pre-wrap;
+  }
+  .item-img {
+    width: 100%; border-radius: 6px; margin-bottom: 8px;
+    box-shadow: 0 0 6px var(--accent);
+  }
+  .item-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .item-link:hover {
+    text-decoration: underline;
+  }
+  #fileLabel {
+    display: block;
+    padding: 12px;
+    border: 2px dashed rgba(255,255,255,0.3);
+    border-radius: 6px;
+    color: var(--muted);
+    margin-bottom: 15px;
+    cursor: pointer;
+    text-align: center;
+  }
+  #fileInput {
+    display: none;
+  }
+
+  /* Text-only cards styling */
+  #textsListContainer {
+    margin-top: 30px;
+  }
+  #textsListContainer h2 {
+    color: var(--accent);
+    margin-bottom: 15px;
+  }
+  .text-card {
+    background: #2a2a2a;
+    color: #ccc;
+    font-size: 0.95rem;
+    white-space: pre-wrap;
+    padding: 15px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    box-shadow: 0 0 8px var(--accent);
   }
 </style>
 </head>
 <body>
 
-<!-- Top left icon -->
-<img src="https://files.catbox.moe/knccht.jpg" alt="Dtz Store Icon" id="top-left-icon" />
+<header>
+  <div>
+    <strong>DtzStore </strong><br />
+    <span class="subtitle">Admin Upload Panel & Public View</span>
+  </div>
+  <button id="openAdminBtn">Owner Panel 🔪</button>
+</header>
 
-<!-- Owner panel button top right -->
-<button id="ownerBtn" aria-label="Go to Owner ">Owner</button>
-
-<h1>⚶-𝐃𝐓𝐙-𝐒𝐓𝐎𝐑𝐄-⚶</h1>
-
-<div id="content" aria-live="polite" aria-busy="false" class="show">
-  Loading content...
+<div id="itemsList" aria-live="polite" aria-atomic="true">
+  <!-- Items from Firebase will appear here -->
 </div>
 
-<script type="module">
+<!-- Text-only content list container -->
+<div id="textsListContainer" aria-live="polite" aria-atomic="true">
+  <h2>Text Contents</h2>
+  <!-- Text-only contents will appear here -->
+</div>
+
+<!-- Admin Modal -->
+<div id="adminModal" class="modal" aria-modal="true" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+  <div class="box">
+
+    <!-- Login View -->
+    <div id="loginView">
+      <h2 id="modalTitle">Owner Login</h2>
+      <input id="passwordInput" type="password" placeholder="Enter Password" aria-label="Password" autocomplete="off" />
+      <div class="btn-group" style="margin-top:10px;">
+        <button id="loginBtn">Login</button>
+        <button id="closeModalBtn" style="background:#444;">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Upload View -->
+    <div id="uploadView" style="display:none;">
+      <h2>Upload New Item</h2>
+      <input id="titleInput" placeholder="Title (required)" aria-label="Title" />
+      <textarea id="detailsInput" rows="3" placeholder="Details (optional)" aria-label="Details"></textarea>
+
+      <input id="imageUrlInput" placeholder="Image URL (optional, no upload)" aria-label="Image URL" style="margin-bottom:15px;" />
+
+      <label id="fileLabel" for="fileInput">Choose file (upload)</label>
+      <input id="fileInput" type="file" aria-describedby="fileLabel" />
+
+      <div id="previewContainer" style="margin-bottom:15px;"></div>
+
+      <div style="margin-bottom: 10px;">
+        <button id="openTextUploadBtn" style="background:#444;">Add Text Only</button>
+      </div>
+
+      <div class="btn-group">
+        <button id="uploadBtn">Upload</button>
+        <button id="logoutBtn" style="background:#444;">Logout</button>
+      </div>
+    </div>
+
+    <!-- Text-only Upload View -->
+    <div id="textUploadView" style="display:none;">
+      <h2>Upload Text Content</h2>
+      <textarea id="textContentInput" rows="4" placeholder="Enter text content here..." aria-label="Text Content"></textarea>
+      <div class="btn-group">
+        <button id="uploadTextBtn">Upload Text</button>
+        <button id="backToUploadBtn" style="background:#444;">Back</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+<script>
   // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyAeUFi-IKSFPHk1ZBSnjZ-4ri7BzizxV2I",
     authDomain: "dcktsula.firebaseapp.com",
     databaseURL: "https://dcktsula-default-rtdb.firebaseio.com",
     projectId: "dcktsula",
-    storageBucket: "dcktsula.firebasestorage.app",
+    storageBucket: "dcktsula.appspot.com",
     messagingSenderId: "104670460847",
     appId: "1:104670460847:web:ecfcafd7528f1b1c8b8d5a",
     measurementId: "G-2XXP969SM9"
   };
 
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-app.js";
-  import {
-    getFirestore,
-    collection,
-    query,
-    orderBy,
-    onSnapshot
-  } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore.js";
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
+  const storage = firebase.storage();
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+  // Elements
+  const adminModal = document.getElementById('adminModal');
+  const loginView = document.getElementById('loginView');
+  const uploadView = document.getElementById('uploadView');
+  const textUploadView = document.getElementById('textUploadView');
 
-  const contentDiv = document.getElementById('content');
-  const ownerBtn = document.getElementById('ownerBtn');
+  const passwordInput = document.getElementById('passwordInput');
+  const loginBtn = document.getElementById('loginBtn');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  const openAdminBtn = document.getElementById('openAdminBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const titleInput = document.getElementById('titleInput');
+  const detailsInput = document.getElementById('detailsInput');
+  const imageUrlInput = document.getElementById('imageUrlInput');
+  const fileInput = document.getElementById('fileInput');
+  const previewContainer = document.getElementById('previewContainer');
 
-  // Redirect to owner.html on button click
-  ownerBtn.addEventListener('click', () => {
-    window.location.href = 'owner.html'; // ඔයාගේ owner panel පිටුවේ path එකට වෙනස් කරන්න
+  const openTextUploadBtn = document.getElementById('openTextUploadBtn');
+  const backToUploadBtn = document.getElementById('backToUploadBtn');
+  const uploadTextBtn = document.getElementById('uploadTextBtn');
+  const textContentInput = document.getElementById('textContentInput');
+
+  const itemsList = document.getElementById('itemsList');
+  const textsListContainer = document.getElementById('textsListContainer');
+
+  const ADMIN_PASSWORD = "1234";
+
+  // Open admin modal & login view
+  openAdminBtn.addEventListener('click', () => {
+    adminModal.classList.add('show');
+    adminModal.setAttribute('aria-hidden', 'false');
+    loginView.style.display = 'block';
+    uploadView.style.display = 'none';
+    textUploadView.style.display = 'none';
+    passwordInput.value = '';
+    passwordInput.focus();
   });
 
-  const q = query(collection(db, "dtzstore_contents"), orderBy("createdAt", "desc"));
+  // Close modal functions
+  function closeModal() {
+    adminModal.classList.remove('show');
+    adminModal.setAttribute('aria-hidden', 'true');
+  }
+  closeModalBtn.addEventListener('click', closeModal);
+  logoutBtn.addEventListener('click', closeModal);
 
-  onSnapshot(q, (snapshot) => {
-    contentDiv.innerHTML = "";
+  // Login handler
+  loginBtn.addEventListener('click', () => {
+    if(passwordInput.value === ADMIN_PASSWORD){
+      loginView.style.display = 'none';
+      uploadView.style.display = 'block';
+      textUploadView.style.display = 'none';
+      titleInput.value = '';
+      detailsInput.value = '';
+      imageUrlInput.value = '';
+      fileInput.value = '';
+      previewContainer.innerHTML = '';
+      titleInput.focus();
+    } else {
+      alert("වැරදි password එකක්");
+      passwordInput.focus();
+    }
+  });
 
-    if(snapshot.empty){
-      contentDiv.innerHTML = "<p style='text-align:center; color:#ff4466;'>No content available yet.</p>";
+  // File input preview
+  fileInput.addEventListener('change', () => {
+    previewContainer.innerHTML = '';
+    const file = fileInput.files[0];
+    if(!file) return;
+    const url = URL.createObjectURL(file);
+    if(file.type.startsWith("image/")){
+      const img = document.createElement('img');
+      img.src = url;
+      img.style.maxWidth = "100%";
+      img.style.borderRadius = "6px";
+      previewContainer.appendChild(img);
+    } else if(file.type.startsWith("video/")){
+      const video = document.createElement('video');
+      video.src = url;
+      video.controls = true;
+      video.style.maxWidth = "100%";
+      video.style.borderRadius = "6px";
+      previewContainer.appendChild(video);
+    } else if(file.type.startsWith("audio/")){
+      const audio = document.createElement('audio');
+      audio.src = url;
+      audio.controls = true;
+      audio.style.width = "100%";
+      previewContainer.appendChild(audio);
+    } else {
+      const p = document.createElement('p');
+      p.textContent = "Upload කිරීමට සූදානම්: " + file.name;
+      previewContainer.appendChild(p);
+    }
+  });
+
+  // Upload image/file or URL item
+  uploadBtn.addEventListener('click', () => {
+    const title = titleInput.value.trim();
+    const details = detailsInput.value.trim();
+    const imageUrl = imageUrlInput.value.trim();
+    const file = fileInput.files[0];
+
+    if(!title){
+      alert("Title එක අනිවාර්යයි!");
+      titleInput.focus();
+      return;
+    }
+    if(!imageUrl && !file){
+      alert("Image URL එකක් හෝ file එකක් අවශ්‍යයි!");
+      imageUrlInput.focus();
       return;
     }
 
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const el = document.createElement('div');
-      el.className = "item";
+    uploadBtn.disabled = true;
+    uploadBtn.textContent = 'Uploading...';
 
-      if(data.type === "text"){
-        el.textContent = data.content;
-      } else if(data.type === "link"){
-        el.innerHTML = `<a href="${data.content}" target="_blank" rel="noopener">${data.content}</a>`;
-      } else if(data.type === "photo"){
-        el.innerHTML = `<img src="${data.content}" alt="Photo" />`;
-      } else if(data.type === "file"){
-        el.innerHTML = `<a href="${data.content}" target="_blank" download>📥 Download File</a>`;
-      }
+    function saveDataToDB(fileURL = "", fileType = "", fileName = "") {
+      const newItemRef = database.ref('items').push();
+      newItemRef.set({
+        title: title,
+        details: details,
+        imageUrl: imageUrl || "", // user can enter image url manually
+        fileURL: fileURL,
+        fileType: fileType,
+        fileName: fileName,
+        timestamp: Date.now()
+      }).then(() => {
+        alert("Upload සාර්ථකයි!");
+        titleInput.value = '';
+        detailsInput.value = '';
+        imageUrlInput.value = '';
+        fileInput.value = '';
+        previewContainer.innerHTML = '';
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = 'Upload';
+      }).catch(err => {
+        alert("Database save error: " + err.message);
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = 'Upload';
+      });
+    }
 
-      contentDiv.appendChild(el);
+    if(file){
+      // Upload file Firebase Storage
+      const storageRef = storage.ref().child(`uploads/${Date.now()}_${file.name}`);
+      const uploadTask = storageRef.put(file);
+
+      uploadTask.on('state_changed',
+        () => {},
+        (error) => {
+          alert("Upload අසාර්ථකයි: " + error.message);
+          uploadBtn.disabled = false;
+          uploadBtn.textContent = 'Upload';
+        },
+        () => {
+          uploadTask.snapshot.ref.getDownloadURL().then(downloadURL => {
+            saveDataToDB(downloadURL, file.type, file.name);
+          });
+        }
+      );
+    } else {
+      // Only imageUrl (no file)
+      saveDataToDB();
+    }
+  });
+
+  // Open Text-only upload view
+  openTextUploadBtn.addEventListener('click', () => {
+    uploadView.style.display = 'none';
+    textUploadView.style.display = 'block';
+    textContentInput.value = '';
+    textContentInput.focus();
+  });
+
+  // Back button in text upload view
+  backToUploadBtn.addEventListener('click', () => {
+    textUploadView.style.display = 'none';
+    uploadView.style.display = 'block';
+  });
+
+  // Upload Text-only content
+  uploadTextBtn.addEventListener('click', () => {
+    const textContent = textContentInput.value.trim();
+    if(!textContent){
+      alert('Text content එක ඇතුළත් කරන්න');
+      textContentInput.focus();
+      return;
+    }
+
+    uploadTextBtn.disabled = true;
+    uploadTextBtn.textContent = 'Uploading...';
+
+    const newTextRef = database.ref('texts').push();
+    newTextRef.set({
+      text: textContent,
+      timestamp: Date.now()
+    }).then(() => {
+      alert('Text upload සාර්ථකයි!');
+      textContentInput.value = '';
+      uploadTextBtn.disabled = false;
+      uploadTextBtn.textContent = 'Upload Text';
+      // Back to normal upload view
+      textUploadView.style.display = 'none';
+      uploadView.style.display = 'block';
+    }).catch(err => {
+      alert('Text upload error: ' + err.message);
+      uploadTextBtn.disabled = false;
+      uploadTextBtn.textContent = 'Upload Text';
     });
   });
+
+  // Load items from Firebase and show on page
+  function loadItems() {
+    database.ref('items').orderByChild('timestamp').limitToLast(100).on('value', snapshot => {
+      itemsList.innerHTML = '';
+      const data = snapshot.val();
+      if(!data) {
+        itemsList.innerHTML = '<p style="color:#999;">No items found.</p>';
+        return;
+      }
+      // Show newest first
+      const entries = Object.entries(data).sort((a,b) => b[1].timestamp - a[1].timestamp);
+
+      for(const [key, item] of entries){
+        const card = document.createElement('div');
+        card.classList.add('item-card');
+
+        // Title
+        const titleEl = document.createElement('div');
+        titleEl.className = 'item-title';
+        titleEl.textContent = item.title;
+        card.appendChild(titleEl);
+
+        // Details
+        if(item.details){
+          const detailsEl = document.createElement('div');
+          detailsEl.className = 'item-details';
+          detailsEl.textContent = item.details;
+          card.appendChild(detailsEl);
+        }
+
+        // Image (from URL or uploaded file if image)
+        let imgUrl = "";
+        if(item.fileType && item.fileType.startsWith('image/') && item.fileURL){
+          imgUrl = item.fileURL;
+        } else if(item.imageUrl){
+          imgUrl = item.imageUrl;
+        }
+
+        if(imgUrl){
+          const imgEl = document.createElement('img');
+          imgEl.src = imgUrl;
+          imgEl.alt = item.title;
+          imgEl.className = 'item-img';
+          card.appendChild(imgEl);
+        }
+
+        // If file
+        // If file is video or audio, show player or link
+        if(item.fileURL && item.fileType){
+          if(item.fileType.startsWith('video/')){
+            const videoEl = document.createElement('video');
+            videoEl.src = item.fileURL;
+            videoEl.controls = true;
+            videoEl.style.maxWidth = "100%";
+            videoEl.style.borderRadius = "6px";
+            card.appendChild(videoEl);
+          } else if(item.fileType.startsWith('audio/')){
+            const audioEl = document.createElement('audio');
+            audioEl.src = item.fileURL;
+            audioEl.controls = true;
+            audioEl.style.width = "100%";
+            card.appendChild(audioEl);
+          } else if(!item.fileType.startsWith('image/')){
+            // For other file types, show a download link
+            const linkEl = document.createElement('a');
+            linkEl.href = item.fileURL;
+            linkEl.textContent = "Download File: " + (item.fileName || "File");
+            linkEl.className = 'item-link';
+            linkEl.target = '_blank';
+            card.appendChild(linkEl);
+          }
+        }
+
+        itemsList.appendChild(card);
+      }
+    });
+  }
+
+  // Load text-only contents
+  function loadTexts() {
+    database.ref('texts').orderByChild('timestamp').limitToLast(100).on('value', snapshot => {
+      textsListContainer.innerHTML = '<h2>Text Contents</h2>'; // reset with heading
+      const data = snapshot.val();
+      if(!data) {
+        const p = document.createElement('p');
+        p.style.color = '#999';
+        p.textContent = 'No text contents found.';
+        textsListContainer.appendChild(p);
+        return;
+      }
+      
+      const entries = Object.entries(data).sort((a,b) => b[1].timestamp - a[1].timestamp);
+      for(const [key, textItem] of entries){
+        const textCard = document.createElement('div');
+        textCard.className = 'text-card';
+        textCard.textContent = textItem.text;
+        textsListContainer.appendChild(textCard);
+      }
+    });
+  }
+
+  loadItems();
+  loadTexts();
+
 </script>
 
 </body>
