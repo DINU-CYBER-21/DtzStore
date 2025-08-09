@@ -6,38 +6,74 @@
 <title>Dtz Store - Public View</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+
   body {
     background: #121212;
     color: #eee;
     font-family: 'Poppins', sans-serif;
-    margin: 0; padding: 2rem;
+    margin: 0; 
+    padding: 2rem;
     min-height: 100vh;
+    position: relative;
   }
   h1 {
     text-align: center;
     color: #ff0033;
     margin-bottom: 2rem;
   }
+
+  /* Icon image top-left */
+  #top-left-icon {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px #ff0033aa;
+    cursor: default;
+    z-index: 1002;
+  }
+
+  /* Owner panel button top-right */
+  #ownerBtn {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    background: #ff0033;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 0 12px #ff0033aa;
+    z-index: 1002;
+    transition: background-color 0.3s ease;
+  }
+  #ownerBtn:hover {
+    background-color: #cc0029;
+  }
+
   #content {
     max-width: 700px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
     gap: 1.2rem;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    padding-top: 1rem;
   }
   .item {
     background: #222;
     border-radius: 10px;
     padding: 1rem 1.2rem;
     box-shadow: 0 0 8px #ff0033aa;
-    opacity: 0;
-    transform: translateY(15px);
-    animation: fadeInUp 0.4s forwards;
+    word-break: break-word;
   }
-  .item:nth-child(1) { animation-delay: 0.1s; }
-  .item:nth-child(2) { animation-delay: 0.2s; }
-  .item:nth-child(3) { animation-delay: 0.3s; }
-  .item:nth-child(4) { animation-delay: 0.4s; }
   a {
     color: #ff6688;
     word-break: break-word;
@@ -47,73 +83,83 @@
     border-radius: 8px;
     box-shadow: 0 0 10px #ff4466;
   }
-  @keyframes fadeInUp {
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
 </style>
 </head>
 <body>
 
-<h1>Dtz Store - Public View</h1>
-<div id="content">Loading...</div>
+<!-- Top left icon -->
+<img src="https://files.catbox.moe/knccht.jpg" alt="Dtz Store Icon" id="top-left-icon" />
+
+<!-- Owner panel button top right -->
+<button id="ownerBtn" aria-label="Go to Owner ">Owner</button>
+
+<h1>⚶-𝐃𝐓𝐙-𝐒𝐓𝐎𝐑𝐄-⚶</h1>
+
+<div id="content" aria-live="polite" aria-busy="false" class="show">
+  Loading content...
+</div>
 
 <script type="module">
-// Firebase setup
-const firebaseConfig = {
-  apiKey: "AIzaSyAeUFi-IKSFPHk1ZBSnjZ-4ri7BzizxV2I",
-  authDomain: "dcktsula.firebaseapp.com",
-  databaseURL: "https://dcktsula-default-rtdb.firebaseio.com",
-  projectId: "dcktsula",
-  storageBucket: "dcktsula.firebasestorage.app",
-  messagingSenderId: "104670460847",
-  appId: "1:104670460847:web:ecfcafd7528f1b1c8b8d5a",
-  measurementId: "G-2XXP969SM9"
-};
+  // Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyAeUFi-IKSFPHk1ZBSnjZ-4ri7BzizxV2I",
+    authDomain: "dcktsula.firebaseapp.com",
+    databaseURL: "https://dcktsula-default-rtdb.firebaseio.com",
+    projectId: "dcktsula",
+    storageBucket: "dcktsula.firebasestorage.app",
+    messagingSenderId: "104670460847",
+    appId: "1:104670460847:web:ecfcafd7528f1b1c8b8d5a",
+    measurementId: "G-2XXP969SM9"
+  };
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  query,
-  orderBy,
-  onSnapshot
-} from "https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    query,
+    orderBy,
+    onSnapshot
+  } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore.js";
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-const contentDiv = document.getElementById('content');
+  const contentDiv = document.getElementById('content');
+  const ownerBtn = document.getElementById('ownerBtn');
 
-const q = query(collection(db, "dtzstore_contents"), orderBy("createdAt", "desc"));
+  // Redirect to owner.html on button click
+  ownerBtn.addEventListener('click', () => {
+    window.location.href = 'owner.html'; // ඔයාගේ owner panel පිටුවේ path එකට වෙනස් කරන්න
+  });
 
-onSnapshot(q, (snapshot) => {
-  contentDiv.innerHTML = "";
-  if(snapshot.empty){
-    contentDiv.innerHTML = "<p style='text-align:center; color:#ff4466;'>No content available yet.</p>";
-    return;
-  }
+  const q = query(collection(db, "dtzstore_contents"), orderBy("createdAt", "desc"));
 
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    const el = document.createElement('div');
-    el.className = "item";
+  onSnapshot(q, (snapshot) => {
+    contentDiv.innerHTML = "";
 
-    if(data.type === "text"){
-      el.textContent = data.content;
-    } else if(data.type === "link"){
-      el.innerHTML = `<a href="${data.content}" target="_blank" rel="noopener">${data.content}</a>`;
-    } else if(data.type === "photo"){
-      el.innerHTML = `<img src="${data.content}" alt="Photo" />`;
-    } else if(data.type === "file"){
-      el.innerHTML = `<a href="${data.content}" target="_blank" download>📥 Download File</a>`;
+    if(snapshot.empty){
+      contentDiv.innerHTML = "<p style='text-align:center; color:#ff4466;'>No content available yet.</p>";
+      return;
     }
 
-    contentDiv.appendChild(el);
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const el = document.createElement('div');
+      el.className = "item";
+
+      if(data.type === "text"){
+        el.textContent = data.content;
+      } else if(data.type === "link"){
+        el.innerHTML = `<a href="${data.content}" target="_blank" rel="noopener">${data.content}</a>`;
+      } else if(data.type === "photo"){
+        el.innerHTML = `<img src="${data.content}" alt="Photo" />`;
+      } else if(data.type === "file"){
+        el.innerHTML = `<a href="${data.content}" target="_blank" download>📥 Download File</a>`;
+      }
+
+      contentDiv.appendChild(el);
+    });
   });
-});
 </script>
 
 </body>
