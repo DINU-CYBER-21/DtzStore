@@ -159,7 +159,7 @@
 
 <!-- Text-only content list container -->
 <div id="textsListContainer" aria-live="polite" aria-atomic="true">
-  <h2>Text Contents</h2>
+  <h2>DARK-TECH-ZONE</h2>
   <!-- Text-only contents will appear here -->
 </div>
 
@@ -530,7 +530,7 @@
   // Load text-only contents
   function loadTexts() {
     database.ref('texts').orderByChild('timestamp').limitToLast(100).on('value', snapshot => {
-      textsListContainer.innerHTML = '<h2>Text Contents</h2>'; // reset with heading
+      textsListContainer.innerHTML = '<h2>DARK-TECH-ZONE</h2>'; // reset with heading
       const data = snapshot.val();
       if(!data) {
         const p = document.createElement('p');
