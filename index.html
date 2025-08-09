@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Dtz Store - Public View</title>
+<title>Dtz Store - Public + Owner Panel</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -14,6 +14,10 @@
   h1 {
     color: #ff0033;
     text-align: center;
+  }
+  #content {
+    max-width: 600px;
+    margin: 1rem auto;
   }
   .item {
     background: #222;
@@ -29,6 +33,73 @@
     max-width: 100%;
     border-radius: 8px;
   }
+
+  /* Owner Panel Button */
+  #ownerBtn {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: #ff0033;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    z-index: 1000;
+  }
+
+  /* Modal (Owner Panel) styles */
+  #ownerPanel {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 50px;
+    right: 10px;
+    width: 350px;
+    max-width: 90vw;
+    background: #222;
+    border-radius: 8px;
+    padding: 1rem;
+    z-index: 1001;
+    box-shadow: 0 0 10px #ff0033;
+  }
+  #ownerPanel h2 {
+    margin-top: 0;
+    color: #ff4466;
+    text-align: center;
+  }
+  #ownerPanel input, #ownerPanel textarea {
+    width: 100%;
+    padding: 0.6rem;
+    margin: 0.4rem 0 1rem;
+    border-radius: 5px;
+    border: none;
+    background: #333;
+    color: #eee;
+  }
+  #ownerPanel button {
+    background: #ff0033;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-right: 0.5rem;
+  }
+  #ownerPanel nav button.tab-btn {
+    background: #ff4466;
+    margin: 0 0.3rem 1rem 0;
+  }
+  #ownerPanel #message {
+    text-align: center;
+    margin-top: 0.5rem;
+  }
+  #ownerPanel #error {
+    color: #ff4444;
+    margin-top: 0.5rem;
+    text-align: center;
+  }
 </style>
 </head>
 <body>
@@ -36,8 +107,38 @@
 <h1>Dtz Store - Public View</h1>
 <div id="content"></div>
 
+<button id="ownerBtn">Owner Panel</button>
+
+<div id="ownerPanel">
+  <h2>Owner Panel Login</h2>
+  <div id="login-form">
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <button id="login-btn">Login</button>
+    <p id="error"></p>
+  </div>
+
+  <div id="panel" style="display:none;">
+    <nav>
+      <button data-type="text" class="tab-btn">Add Text</button>
+      <button data-type="link" class="tab-btn">Add Link</button>
+      <button data-type="photo" class="tab-btn">Add Photo URL</button>
+      <button data-type="file" class="tab-btn">Add File URL</button>
+      <button id="logout-btn" style="background:#555;">Logout</button>
+    </nav>
+
+    <form id="add-form">
+      <label id="input-label" for="input-content">Text Content:</label>
+      <textarea id="input-content" rows="4" required></textarea>
+      <button type="submit">Save</button>
+    </form>
+
+    <p id="message"></p>
+  </div>
+</div>
+
 <script type="module">
-// Firebase config
+// Firebase config (ඔයාගේ Firebase config එක මෙතන දැමිය යුතුයි)
 const firebaseConfig = {
   apiKey: "AIzaSyAeUFi-IKSFPHk1ZBSnjZ-4ri7BzizxV2I",
   authDomain: "dcktsula.firebaseapp.com",
@@ -53,6 +154,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.24.0/firebas
 import {
   getFirestore,
   collection,
+  addDoc,
+  serverTimestamp,
   onSnapshot,
   query,
   orderBy
@@ -89,6 +192,109 @@ onSnapshot(q, (snapshot) => {
 
     contentDiv.appendChild(el);
   });
+});
+
+// Owner Panel Login logic without Firebase Auth (hardcoded)
+const ownerBtn = document.getElementById('ownerBtn');
+const ownerPanel = document.getElementById('ownerPanel');
+const loginForm = document.getElementById('login-form');
+const panel = document.getElementById('panel');
+const loginBtn = document.getElementById('login-btn');
+const logoutBtn = document.getElementById('logout-btn');
+const errorP = document.getElementById('error');
+const messageP = document.getElementById('message');
+const addForm = document.getElementById('add-form');
+const inputContent = document.getElementById('input-content');
+const inputLabel = document.getElementById('input-label');
+const tabButtons = document.querySelectorAll('.tab-btn');
+
+let currentType = 'text';
+
+// Show/hide owner panel on button click
+ownerBtn.addEventListener('click', () => {
+  if(ownerPanel.style.display === 'block'){
+    ownerPanel.style.display = 'none';
+  } else {
+    ownerPanel.style.display = 'block';
+  }
+});
+
+function updateForm(type) {
+  currentType = type;
+  inputContent.value = '';
+  if(type === 'text'){
+    inputLabel.textContent = 'Text Content:';
+    inputContent.placeholder = 'Enter text content here';
+    inputContent.rows = 4;
+  } else if(type === 'link'){
+    inputLabel.textContent = 'Link URL:';
+    inputContent.placeholder = 'https://example.com';
+    inputContent.rows = 1;
+  } else if(type === 'photo'){
+    inputLabel.textContent = 'Photo URL:';
+    inputContent.placeholder = 'https://example.com/photo.jpg';
+    inputContent.rows = 1;
+  } else if(type === 'file'){
+    inputLabel.textContent = 'File URL:';
+    inputContent.placeholder = 'https://example.com/file.pdf';
+    inputContent.rows = 1;
+  }
+}
+
+tabButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    updateForm(btn.getAttribute('data-type'));
+  });
+});
+
+// Simple hardcoded Owner credentials (ඕන නම් වෙනස් කරන්න)
+const OWNER_EMAIL = "owner@example.com";
+const OWNER_PASSWORD = "123456";
+
+loginBtn.addEventListener('click', () => {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  errorP.textContent = '';
+
+  if(email === OWNER_EMAIL && password === OWNER_PASSWORD){
+    loginForm.style.display = 'none';
+    panel.style.display = 'block';
+    updateForm('text');
+  } else {
+    errorP.textContent = 'Invalid email or password';
+  }
+});
+
+logoutBtn.addEventListener('click', () => {
+  loginForm.style.display = 'block';
+  panel.style.display = 'none';
+  messageP.textContent = '';
+  inputContent.value = '';
+  errorP.textContent = '';
+});
+
+addForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const content = inputContent.value.trim();
+  if(!content){
+    messageP.style.color = '#ff4444';
+    messageP.textContent = 'Content cannot be empty!';
+    return;
+  }
+  try {
+    await addDoc(collection(db, "dtzstore_contents"), {
+      type: currentType,
+      content: content,
+      createdAt: serverTimestamp()
+    });
+    messageP.style.color = '#77ff77';
+    messageP.textContent = 'Content saved successfully!';
+    inputContent.value = '';
+  } catch(err) {
+    messageP.style.color = '#ff4444';
+    messageP.textContent = 'Error saving content: ' + err.message;
+  }
 });
 </script>
 
