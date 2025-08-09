@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dtz Store (Owner Login)</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #121212;
+    color: #eee;
+    margin: 0; padding: 1rem;
+  }
+  h1 {
+    color: #ff0033;
+    text-align: center;
+  }
+  #login-form, #panel {
+    max-width: 500px;
+    margin: 2rem auto;
+    background: #222;
+    padding: 1rem;
+    border-radius: 8px;
+  }
+  input, textarea {
+    width: 100%;
+    padding: 0.6rem;
+    margin: 0.4rem 0 1rem;
+    border-radius: 5px;
+    border: none;
+  }
+  button {
+    background: #ff0033;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  nav button {
+    background: #ff4466;
+    margin: 0 0.3rem;
+  }
+  #message {
+    margin-top: 1rem;
+    color: #77ff77;
+    text-align: center;
+  }
+  #error {
+    color: #ff4444;
+    margin-top: 0.5rem;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>Owner Panel - Dtz Store (Simple Login)</h1>
+
+<div id="login-form">
+  <h3>Login</h3>
+  <input type="email" id="email" placeholder="Email" required />
+  <input type="password" id="password" placeholder="Password" required />
+  <button id="login-btn">Login</button>
+  <p id="error"></p>
+</div>
+
+<div id="panel" style="display:none;">
+  <nav>
+    <button data-type="text" class="tab-btn">Add Text</button>
+    <button data-type="link" class="tab-btn">Add Link</button>
+    <button data-type="photo" class="tab-btn">Add Photo URL</button>
+    <button data-type="file" class="tab-btn">Add File URL</button>
+    <button id="logout-btn" style="background:#555;">Logout</button>
+  </nav>
+
+  <form id="add-form">
+    <label id="input-label" for="input-content">Text Content:</label>
+    <textarea id="input-content" rows="4" required></textarea>
+    <button type="submit">Save</button>
+  </form>
+
+  <p id="message"></p>
+</div>
+
+<script type="module">
+const firebaseConfig = {
+  apiKey: "AIzaSyAeUFi-IKSFPHk1ZBSnjZ-4ri7BzizxV2I",
+  authDomain: "dcktsula.firebaseapp.com",
+  databaseURL: "https://dcktsula-default-rtdb.firebaseio.com",
+  projectId: "dcktsula",
+  storageBucket: "dcktsula.firebasestorage.app",
+  messagingSenderId: "104670460847",
+  appId: "1:104670460847:web:ecfcafd7528f1b1c8b8d5a",
+  measurementId: "G-2XXP969SM9"
+};
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore.js";
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const loginForm = document.getElementById('login-form');
+const panel = document.getElementById('panel');
+const loginBtn = document.getElementById('login-btn');
+const logoutBtn = document.getElementById('logout-btn');
+const errorP = document.getElementById('error');
+const messageP = document.getElementById('message');
+
+const addForm = document.getElementById('add-form');
+const inputContent = document.getElementById('input-content');
+const inputLabel = document.getElementById('input-label');
+const tabButtons = document.querySelectorAll('.tab-btn');
+
+let currentType = 'text';
+
+function updateForm(type) {
+  currentType = type;
+  inputContent.value = '';
+  if(type === 'text'){
+    inputLabel.textContent = 'Text Content:';
+    inputContent.placeholder = 'Enter text content here';
+    inputContent.rows = 4;
+  } else if(type === 'link'){
+    inputLabel.textContent = 'Link URL:';
+    inputContent.placeholder = 'https://example.com';
+    inputContent.rows = 1;
+  } else if(type === 'photo'){
+    inputLabel.textContent = 'Photo URL:';
+    inputContent.placeholder = 'https://example.com/photo.jpg';
+    inputContent.rows = 1;
+  } else if(type === 'file'){
+    inputLabel.textContent = 'File URL:';
+    inputContent.placeholder = 'https://example.com/file.pdf';
+    inputContent.rows = 1;
+  }
+}
+
+tabButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    updateForm(btn.getAttribute('data-type'));
+  });
+});
+
+const OWNER_EMAIL = "dinalolla@gmail.com";
+const OWNER_PASSWORD = "DinaPons";
+
+loginBtn.addEventListener('click', () => {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  errorP.textContent = '';
+
+  if(email === OWNER_EMAIL && password === OWNER_PASSWORD){
+    loginForm.style.display = 'none';
+    panel.style.display = 'block';
+    updateForm('text');
+  } else {
+    errorP.textContent = 'Invalid email or password';
+  }
+});
+
+logoutBtn.addEventListener('click', () => {
+  loginForm.style.display = 'block';
+  panel.style.display = 'none';
+  messageP.textContent = '';
+  inputContent.value = '';
+  errorP.textContent = '';
+});
+
+addForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const content = inputContent.value.trim();
+  if(!content){
+    messageP.style.color = '#ff4444';
+    messageP.textContent = 'Content cannot be empty!';
+    return;
+  }
+  try {
+    await addDoc(collection(db, "dtzstore_contents"), {
+      type: currentType,
+      content: content,
+      createdAt: serverTimestamp()
+    });
+    messageP.style.color = '#77ff77';
+    messageP.textContent = 'Content saved successfully!';
+    inputContent.value = '';
+  } catch(err) {
+    messageP.style.color = '#ff4444';
+    messageP.textContent = 'Error saving content: ' + err.message;
+  }
+});
+</script>
+
+</body>
+</html>
