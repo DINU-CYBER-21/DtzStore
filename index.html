@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dtz Store - Public View</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #121212;
+    color: #eee;
+    margin: 0; padding: 1rem;
+  }
+  h1 {
+    color: #ff0033;
+    text-align: center;
+  }
+  .item {
+    background: #222;
+    margin: 1rem 0;
+    padding: 1rem;
+    border-radius: 8px;
+    word-break: break-word;
+  }
+  a {
+    color: #ff6688;
+  }
+  img {
+    max-width: 100%;
+    border-radius: 8px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Dtz Store - Public View</h1>
+<div id="content"></div>
+
+<script type="module">
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyAeUFi-IKSFPHk1ZBSnjZ-4ri7BzizxV2I",
+  authDomain: "dcktsula.firebaseapp.com",
+  databaseURL: "https://dcktsula-default-rtdb.firebaseio.com",
+  projectId: "dcktsula",
+  storageBucket: "dcktsula.firebasestorage.app",
+  messagingSenderId: "104670460847",
+  appId: "1:104670460847:web:ecfcafd7528f1b1c8b8d5a",
+  measurementId: "G-2XXP969SM9"
+};
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  onSnapshot,
+  query,
+  orderBy
+} from "https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore.js";
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const contentDiv = document.getElementById('content');
+
+const q = query(collection(db, "dtzstore_contents"), orderBy("createdAt", "desc"));
+
+onSnapshot(q, (snapshot) => {
+  contentDiv.innerHTML = "";
+  if(snapshot.empty){
+    contentDiv.innerHTML = "<p>No content available yet.</p>";
+    return;
+  }
+
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    let el = document.createElement('div');
+    el.className = "item";
+
+    if(data.type === "text"){
+      el.textContent = data.content;
+    } else if(data.type === "link"){
+      el.innerHTML = `<a href="${data.content}" target="_blank">${data.content}</a>`;
+    } else if(data.type === "photo"){
+      el.innerHTML = `<img src="${data.content}" alt="Photo" />`;
+    } else if(data.type === "file"){
+      el.innerHTML = `<a href="${data.content}" target="_blank" download>Download File</a>`;
+    }
+
+    contentDiv.appendChild(el);
+  });
+});
+</script>
+
+</body>
+</html>
